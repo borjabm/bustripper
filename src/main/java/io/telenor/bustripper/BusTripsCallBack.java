@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Callback from Jersey when bustrips are there.
@@ -30,17 +31,27 @@ public class BusTripsCallBack implements InvocationCallback<Response> {
         String content = response.readEntity(String.class);
 
         try {
-            BusTrip[] trips = mapper.readValue(content, BusTrip[].class);
-            HashSet set = new HashSet(Arrays.asList(trips));
-            if(!set.isEmpty())
-                listener.gotTrips(set, last);
-
+            if (content!=null && !content.isEmpty()) {
+                BusTrip[] trips = mapper.readValue(content, BusTrip[].class);
+                HashSet<BusTrip> set = new HashSet<>(Arrays.asList(trips));
+                if(!set.isEmpty()) {
+                    gotTrips(set, last);
+                } else {
+                    gotTrips(new HashSet<>(), last);
+                }
+            } else {
+                gotTrips(new HashSet<>(), last);
+            }
         } catch (IOException e) {
-            if(last) {
+            if (last) {
                 listener.failedGettingTrips(e);
             }
         }
 
+    }
+
+    public void gotTrips(Set<BusTrip> trips, boolean last){
+        listener.gotTrips(trips, last);
     }
 
     public void failed(Throwable throwable) {
