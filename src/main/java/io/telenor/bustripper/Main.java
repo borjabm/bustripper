@@ -61,7 +61,7 @@ public class Main {
                     System.out.print("> ");
                     try {
                         String searchterm = in.readLine();
-                        if("q" == searchterm || searchterm.length() == 0) {
+                        if(searchterm.equals("q") || searchterm.length() == 0) {
                             System.exit(0);
                         }
                         System.out.println("Looking up " + searchterm);
