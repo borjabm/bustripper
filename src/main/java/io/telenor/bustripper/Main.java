@@ -29,7 +29,7 @@ public class Main {
                     }
                     if (!alreadyPrinted) {
                         alreadyPrinted = true;
-                        trips.stream().sorted(
+                        allTrips.stream().sorted(
                                 (e1, e2) -> e1.getExpectedArrivalTime().compareTo(e2.getExpectedArrivalTime())
                         ).limit(maxtrips).forEach(t -> System.out.println(t));
 
