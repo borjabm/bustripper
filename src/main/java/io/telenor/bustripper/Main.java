@@ -16,23 +16,26 @@ public class Main {
         private static class BustripWaiter implements TripsCallback {
             private boolean done = false;
             private Set<BusTrip> allTrips = new HashSet<BusTrip>();
+            private boolean alreadyPrinted = false;
             private static int maxtrips = 10;
 
             @Override
             public synchronized void gotTrips(Set<BusTrip> trips, boolean done) {
-                allTrips.addAll(trips);
-
+                if (trips != null && !trips.isEmpty())
+                    allTrips.addAll(trips);
                 if(done || allTrips.size() >= maxtrips) {
                     if (allTrips.isEmpty()) {
                         System.out.println("No trips found!");
                     }
+                    if (!alreadyPrinted) {
+                        alreadyPrinted = true;
+                        trips.stream().sorted(
+                                (e1, e2) -> e1.getExpectedArrivalTime().compareTo(e2.getExpectedArrivalTime())
+                        ).limit(maxtrips).forEach(t -> System.out.println(t));
 
-                    trips.stream().sorted(
-                            (e1, e2) -> e1.getExpectedArrivalTime().compareTo(e2.getExpectedArrivalTime())
-                    ).limit(maxtrips).forEach(t -> System.out.println(t));
-
-                    this.done = true;
-                    notify();
+                        this.done = true;
+                        notify();
+                    }
                 }
             }
 
