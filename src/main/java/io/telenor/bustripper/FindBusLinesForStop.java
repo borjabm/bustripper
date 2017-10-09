@@ -45,6 +45,10 @@ public class FindBusLinesForStop implements Runnable {
                 .request(MediaType.APPLICATION_JSON);
 
         final AsyncInvoker asyncInvoker = invocationBuilder.async();
+        invokeAndSendResponseToCallback(asyncInvoker, target, 0);
+    }
+
+    public void invokeAndSendResponseToCallback(AsyncInvoker asyncInvoker, String target, int numberOfTripSets) {
         asyncInvoker.get(new BusTripsCallBack(target, listener, last));
 
     }

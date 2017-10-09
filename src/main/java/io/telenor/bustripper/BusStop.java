@@ -12,12 +12,13 @@ import java.util.Arrays;
 public class BusStop {
 
     public static class Line {
-        private  int id;
+        private int id;
         private String name;
         private int transportation;
         private String lineColour;
 
-        public Line() {}
+        public Line() {
+        }
 
         @JsonProperty("ID")
         public int getId() {
@@ -69,6 +70,7 @@ public class BusStop {
                     '}';
         }
     }
+
     private Line[] lines;
     private int x;
     private int y;
@@ -80,7 +82,8 @@ public class BusStop {
     private String district;
     private String placeType;
 
-    public BusStop() {}
+    public BusStop() {
+    }
 
     @JsonProperty("Lines")
     public Line[] getLines() {

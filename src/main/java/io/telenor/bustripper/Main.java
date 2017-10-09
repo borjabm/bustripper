@@ -3,7 +3,6 @@ package io.telenor.bustripper;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.InterruptedIOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,10 +12,11 @@ public class Main {
         /**
          * Waits for bustrip results and print the 10 first results sorted by time.
         **/
-        private static class BustripWaiter implements TripsCallback {
+        private static class BustripWaiter implements TripsCallbackWithNumberOfSets {
             private boolean done = false;
-            private Set<BusTrip> allTrips = new HashSet<BusTrip>();
+            private Set<BusTrip> allTrips = new HashSet<>();
             private boolean alreadyPrinted = false;
+            private int numberOfTripSets;
             private static int maxtrips = 10;
 
             @Override
@@ -37,6 +37,17 @@ public class Main {
                         notify();
                     }
                 }
+            }
+
+            @Override
+            public void gotTrips(Set<BusTrip> trips, int totalExpectednumberOfTripSets) {
+                if (trips != null && !trips.isEmpty())
+                    allTrips.addAll(trips);
+                this.numberOfTripSets++;
+                if (this.numberOfTripSets == totalExpectednumberOfTripSets){
+                    gotTrips(new HashSet<>(), true);
+                }
+
             }
 
             @Override
