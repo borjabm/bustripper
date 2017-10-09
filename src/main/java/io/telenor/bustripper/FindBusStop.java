@@ -4,14 +4,12 @@ import org.glassfish.jersey.client.ClientConfig;
 
 import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
+import java.net.URISyntaxException;
 
 /**
  * Searches for bus stops in area provided.
  */
 public class FindBusStop implements Runnable {
-
-
-    private static final String SEARCH_URL = "http://reisapi.ruter.no/Place/GetPlaces/";
 
     private String searchTerm;
 
@@ -25,16 +23,23 @@ public class FindBusStop implements Runnable {
     }
 
     public void run() {
-        ClientConfig configuration = new ClientConfig();
+        try {
+            RuterBusStopURI busStopURI = new RuterBusStopURI(searchTerm);
+            String targetURI = busStopURI.toStringURI();
+            ClientConfig configuration = new ClientConfig();
 
-        client = ClientBuilder.newClient(configuration);
+            client = ClientBuilder.newClient(configuration);
 
-        Invocation.Builder invocationBuilder = client
-                .target(SEARCH_URL + searchTerm)
-                .request(MediaType.APPLICATION_JSON);
+            Invocation.Builder invocationBuilder = client
+                    .target(targetURI)
+                    .request(MediaType.APPLICATION_JSON);
 
-        final AsyncInvoker asyncInvoker = invocationBuilder.async();
-        BusStopsCallBack callback = new BusStopsCallBack(listener);
-        asyncInvoker.get(callback);
+            final AsyncInvoker asyncInvoker = invocationBuilder.async();
+            BusStopsCallBack callback = new BusStopsCallBack(listener);
+            asyncInvoker.get(callback);
+        }catch (URISyntaxException e) {
+            System.out.println("Failed uri. " + e.getMessage());
+        }
+
     }
 }
