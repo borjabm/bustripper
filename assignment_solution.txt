@@ -1,0 +1,74 @@
+Solution:
+1) Encoding and escaping URL with https://docs.oracle.com/javase/7/docs/api/java/net/URI.html
+Even though dot or commas are allowed in URL path, I removed them due to ruter WS not allowing them (server error 404).
+I generated the class RuterBusStopURI to deal with this.
+
+2) The code was initially comparing two different String objects ("q"==searchterm). To compare the value of two String, 
+the String method equals should be used (searchterm.equals("q")).
+
+3) The project is creating a thread for each Stop got from a location. From each thread, the upcoming trips are got. We 
+cannot expect the threads to finish in the same order they were started.
+The method to be called when the threads are done, relies on two parameters: a set of BusTrips and a boolean flag 
+indicating if it is the last thread or not. But this flag cannot be used to verify if we already have all the results 
+because as already said, we cannot expect the threads to finish in the same order they were started
+Due to this reason, as a first approach to solve printing more than 10 lines I still wanted to check the current size of 
+the "allTrips" set (maybe the thread with the done flag to true - the last one - does not complete).
+As a first approach to solve printing more than 10 lines, I created a flag indicating whether the results have or not been 
+already outputted. It was not optimal, but it still worked reasonably well.
+In a second approach, I tried to verify that the results from all the BusStops have been received. To do this, I decided to 
+create a method that received a set of BusTrips and an int indicating how many sets of BusTrips to expect.
+To avoid modifying the existing classes and interfaces, I extended them (maybe they were used by other components).
+Now the BustripWaiter will receive the sets with the method gotTrips(Set<BusTrip> trips, int totalExpectednumberOfTripSets). 
+At each call, a counter of the received sets will be increased. When it matches with the total expected, we proceed to 
+print (by calling the old method gotTrips).
+
+4) Improvements
+4.1) If a thread fails, failedGettingTrips(IOException io) is called. That can prevent the BustripWaiter to print the 
+results if it still is waiting for a failed thread to return. This method should check if the results have been printed.
+4.2) It should wait to the completion of all threads generated at BusStopsCallBack. This way a better control over the 
+expected results - and of the failed threads - could be achieved. 
+4.3) The completed method of class BusStopsCallBack does not handle when no BusStops are found.
+4.4) There a several magic numbers along the code (hardcoded values not assigned to a variable). This should be avoided, 
+as well as for hardcoded Strings not assigned to variables. 
+Examples:
+- for loop in complete method of BusStopsCallBack class: for(int i = 0; i< stops.length && i<10;i++) {}
+- InputGatherer method in Main class: the cursor could be in a String variable instead of System.out.print("> "). Exit 
+letter ("q") should also be in a variable instead of  if(searchterm.equals("q") || searchterm.length() == 0) {}
+4.5) Some trips with special characters are not correctly printed. Their encoding should be reviewed.
+4.6) Some trips include null start or destination. Example: 9201 null -> Drammen 2017-10-07T17:23:28+02:00
+4.7) create enumerate type with different paths to ruter API calls:
+public enum RuterCalls{
+    GETPLACE("http://reisapi.ruter.no/Place/GetPlaces/"),
+    GETDEPARTURE("http://reisapi.ruter.no/StopVisit/GetDepartures/%s?datetime=%s");
+    private String url;
+
+    RuterCalls(String url) {
+        this.url = url;
+    }
+
+    public String url() {
+        return url;
+    }
+}
+
+And then use it as: RuterCalls.GETPLACE.url()
+
+4.8) BusTripsCallBack: line HashSet set = new HashSet(Arrays.asList(trips)); should be changed to 
+HashSet<BusTrip> set = new HashSet<>(Arrays.asList(trips));
+BusTripsCallBack ObjectMapper mapper and String url should be private.
+4.9) Main class, subclass InputGatherer, catch statement could be combined:
+                    try{
+                    {
+                    catch(IOException io) {
+                        done = true;
+                    }
+                    catch(InterruptedException uh) {
+                        done = true;
+                    } 
+
+5) Point 4.2 would give more control over the threads and problems with connection could be handled.
+For slow connections, it is important to set a timeout and handle it properly (ClientBuilder.newClient();, set timeout 
+property.)
+
+When dealing with slow networks, it is also important to give the user some feedback to let him/her know that the request 
+is being processed.
